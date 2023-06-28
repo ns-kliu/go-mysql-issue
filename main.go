@@ -42,16 +42,21 @@ func main() {
 		panic(err)
 	}
 
-	_dbConn.Create(&User{Name: "Jinzhu", Languages: []string{"ZH", "EN"}})
+	_dbConn.Create(&User{Name: "Tom", Languages: []string{"ZH", "EN"}})
 
 	result := _dbConn.Where(datatypes.JSONArrayQuery("languages").Contains("ZH")).First(&User{})
 	// MySQL:
 	// SELECT * FROM `users` WHERE JSON_CONTAINS (`languages`, JSON_ARRAY('ZH')) ORDER BY `users`.`id` LIMIT 1
 	fmt.Println(result.RowsAffected) // 0: record not found
 
-	result = _dbConn.Where(fmt.Sprintf("JSON_CONTAINS(`languages`, JSON_ARRAY('%v'))", "ZH")).First(&User{})
+	result = _dbConn.Raw("SELECT * FROM `users` WHERE JSON_CONTAINS (`languages`, JSON_ARRAY(?)) ORDER BY `users`.`id` LIMIT 1", "ZH").First(&User{})
 	// MySQL:
-	// SELECT * FROM `users` WHERE JSON_CONTAINS(`languages`, JSON_ARRAY('ZH')) ORDER BY `users`.`id` LIMIT 1
+	// SELECT * FROM `users` WHERE JSON_CONTAINS (`languages`, JSON_ARRAY('ZH')) ORDER BY `users`.`id` LIMIT 1
+	fmt.Println(result.RowsAffected) // 0: record not found
+
+	result = _dbConn.Where(fmt.Sprintf("JSON_CONTAINS (`languages`, JSON_ARRAY('%v'))", "ZH")).First(&User{})
+	// MySQL:
+	// SELECT * FROM `users` WHERE JSON_CONTAINS (`languages`, JSON_ARRAY('ZH')) ORDER BY `users`.`id` LIMIT 1
 	fmt.Println(result.RowsAffected) // 1
 
 	time.Sleep(10000000 * time.Second)
